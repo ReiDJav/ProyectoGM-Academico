@@ -1,4 +1,7 @@
-// Definiciones de versión y configuraciones condicionales
+## Codigo fuente del contador Geiger-Müller
+##(por cuestiones de seguridad, se van omitir las credenciales de Wi-Fi, Thingspeak y IFTTT)
+```cpp
+// Definimos los condicionales
 #define Version "V1"
 #define CONS
 #define WIFI
@@ -7,7 +10,7 @@
 #define PRINT_DEBUG_MESSAGES
 #endif
 
-// Inclusión de bibliotecas y definición de constantes
+// Incluimos las bibliotecas a utilizar y definimos las constantes
 #ifdef WIFI
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -22,27 +25,26 @@
 // Definición de parámetros y credenciales
 #define WIFI_TIMEOUT_DEF 30
 #define PERIOD_LOG 15                // Periodo de registro
-#define PERIOD_THINKSPEAK 3600       // En segundos, debería ser mayor a 60
+#define PERIOD_THINKSPEAK 3600       // En segundos, > 60
 #define WDT_TIMEOUT 10
 
 #ifndef CREDENTIALS
-// Configuración de la red WLAN
-#ifdef WIFI
-#define mySSID "House Stark"
-#define myPASSWORD "WinterIsComing"
+#ifdef WIFI // Credencial de la red WLAN
+#define mySSID "XYZ"
+#define myPASSWORD "XYZ"
 
-// Configuración de IFTTT
+// Credencial para IFTTT
 #ifdef IFTT
-#define IFTTT_KEY "ppvsCJbpqGrPCsgT_sBIW1198_U4qg1_nfSLLioG8zP"
+#define IFTTT_KEY "XYZ"
 #endif
 
-// Configuración de ThingSpeak
-#define SECRET_CH_ID 2170273      // Número del canal
-#define SECRET_WRITE_APIKEY "G4KSAVPD96EV7BZP"   // Clave API de escritura
+// Credencial para ThingSpeak
+#define SECRET_CH_ID "XYZ"      // Número del canal
+#define SECRET_WRITE_APIKEY "XYZ"   // Clave API de escritura
 
 #endif
 
-// Configuración de IFTTT
+// Configuración del canal de IFTTT
 #ifdef IFTT
 #define EVENT_NAME "Radioactividad" // Nombre del applet en IFTTT
 #endif
@@ -58,7 +60,7 @@ WiFiClientSecure secure_client;
 // Configuración del display OLED
 SSD1306  display(0x3c, 5, 4);
 
-const int inputPin = 26;
+const int inputPin = 26; // Definimos el número del pin
 
 int counts = 0;  // Contador de eventos del tubo
 int counts2 = 0;
@@ -107,7 +109,7 @@ void displayString(String dispString, int x, int y) {
 // Función de reinicio de software
 void software_Reset() {
 #ifdef CONS
-  Serial.println("Reset por software");
+  Serial.println("Resetting by software");
 #endif
   displayString("Myreset", 64, 15);
   delay(1000);
@@ -121,24 +123,24 @@ void IFTTT(int postValue) {
   IFTTTWebhook webhook(IFTTT_KEY, EVENT_NAME);
   if (!webhook.trigger(String(postValue).c_str())) {
 #ifdef CONS
-    Serial.println("Enviado exitosamente a IFTTT");
+    Serial.println("Successfully sento to IFTTT");
   } else {
-    Serial.println("¡IFTTT falló!");
+    Serial.println("IFTTT failed");
 #endif
   }
 #endif
 #endif
 }
 
-// Función para enviar datos a ThingSpeak
+// Función para enviar datos a ThingSpeak, cuenta con 8 campos en un canal, permitiendo almacenar datos en diferentes canales
 void postThingspeak( int value) {
 #ifdef WIFI
-  int x = ThingSpeak.writeField(myChannelNumber, 1, value, myWriteAPIKey);
+  int x = ThingSpeak.writeField(myChannelNumber, 1, value, myWriteAPIKey); // Mandamos los datos al campo 1
 #ifdef CONS
   if (x == 200) {
-    Serial.println("Actualización del canal exitosa");
+    Serial.println("Channel update successful");
   } else {
-    Serial.println("Problema al actualizar el canal. Código de error HTTP: " + String(x));
+    Serial.println("Problem updating channel. HTTP error code" + String(x));
   }
 #endif
 #endif
@@ -151,24 +153,24 @@ void printStack() {
   char *StackPtrAtStart = (char *)&SpStart;
   UBaseType_t watermarkStart = uxTaskGetStackHighWaterMark(NULL);
   char *StackPtrEnd = StackPtrAtStart - watermarkStart;
-  Serial.printf("=== Información de la pila === ");
-  Serial.printf("La pila libre es:  %d \r\n", (uint32_t)StackPtrAtStart - (uint32_t)StackPtrEnd);
+  Serial.printf("=== Stack info === ");
+  Serial.printf("Free stack is:  %d \r\n", (uint32_t)StackPtrAtStart - (uint32_t)StackPtrEnd);
 #endif
 }
 
 // Configuración inicial
 void setup() {
-  esp_task_wdt_init(WDT_TIMEOUT, true); // Activar el pánico para reiniciar ESP32
+  esp_task_wdt_init(WDT_TIMEOUT, true); // Activar el "pánico" para reiniciar ESP32
   esp_task_wdt_add(NULL); // Añadir el hilo actual a la vigilancia WDT
   
 #ifdef CONS
   Serial.begin(115200);
-  Serial.print("Esta es la versión ") ; Serial.println(Version) ;
+  Serial.print("This is ") ; Serial.println(Version) ;
 #endif 
 
   if (PERIOD_LOG > PERIOD_THINKSPEAK) {
 #ifdef CONS
-    Serial.println("PERIOD_THINKSPEAK debe ser mayor que PERIODE_LOG");
+    Serial.println("PERIOD_THINKSPEAK has to be bigger than PERIODE_LOG");
 #endif
     while (1);
   }
@@ -176,12 +178,12 @@ void setup() {
 #ifdef WIFI
   ThingSpeak.begin(client);  // Inicializar ThingSpeak
 #endif
-  displayString("Bienvenido", 64, 0);
+  displayString("Welcome", 64, 0);
   displayString(Version, 64, 30);
   printStack();
 #ifdef WIFI
 #ifdef CONS
-  Serial.println("Conectando a Wi-Fi");
+  Serial.println("Connecting to Wi-Fi");
 #endif 
 
   WiFi.begin(mySSID, myPASSWORD);
@@ -198,19 +200,80 @@ void setup() {
   }
 #ifdef CONS
   Serial.println();
-  Serial.println("Wi-Fi conectado");
+  Serial.println("Wi-Fi connected");
 #endif
 #endif
   display.clear();
-  displayString("Midien", 64, 15);
-  pinMode(inputPin, INPUT);                            // Clavija para capturar eventos del tubo
+  displayString("Measurring", 64, 15);
+  pinMode(inputPin, INPUT);                            // Definimos el pin para capturar los eventos del tubo
 #ifdef CONS
-  Serial.println("Definido el pin de entrada");
+  Serial.println("Defined Input Pin");
 #endif
-  attachInterrupt(digitalPinToInterrupt(inputPin), ISR_impulse, FALLING);     // Definir interrupción en bajada
-  Serial.println("IRQ instalada");
+  attachInterrupt(digitalPinToInterrupt(inputPin), ISR_impulse, FALLING);    
+  Serial.println("IRQ installed");
 
   startEntryThingspeak = lastEntryThingspeak = millis();
   startCountTime = lastCountTime = millis();
 #ifdef CONS
-  Serial.println("Inicial
+  Serial.println("Initialized");
+#endif  
+}
+
+int active = 0 ;
+
+// Función principal en bucle
+void loop() {
+  esp_task_wdt_reset();
+#ifdef WIFI
+  if (WiFi.status() != WL_CONNECTED) software_Reset();
+#endif
+
+  if (millis() - lastCountTime > (PERIOD_LOG * 1000)) {
+#ifdef CONS
+    Serial.print("Counts: "); Serial.println(counts);
+#endif
+    cpm = (60000 * counts) / (millis() - startCountTime) ;
+    counts = 0 ;
+    startCountTime = millis() ;
+    lastCountTime += PERIOD_LOG * 1000;
+    display.clear();
+    displayString("Radioactivity", 64, 0);
+    displayInt(cpm, 64, 30);
+    if (cpm >= 200) {
+      if (active) {
+        active = 0 ;
+        display.clear();
+        displayString("ALARM!!", 64, 0);
+        displayInt(cpm, 64, 30);
+#ifdef IFTT
+        IFTTT(cpm);
+#endif
+      } ;
+    }
+    else if (cpm < 100)
+    {
+      active = 1 ;
+    } ;
+#ifdef CONS
+    Serial.print("cpm: "); Serial.println(cpm);
+#endif
+    printStack();
+  }
+
+  if (millis() - lastEntryThingspeak > (PERIOD_THINKSPEAK * 1000)) {
+#ifdef CONS
+    Serial.print("Counts2: "); Serial.println(counts2);
+#endif
+    int averageCPH = (int)(((float)3600000 * (float)counts2) / (float)(millis() - startEntryThingspeak));
+#ifdef CONS
+    Serial.print("Promedio de cph: "); Serial.println(averageCPH);
+#endif
+    postThingspeak(averageCPH);
+    lastEntryThingspeak += PERIOD_THINKSPEAK * 1000;
+    startEntryThingspeak = millis();
+    counts2 = 0;
+  } ;
+  delay(50);
+}
+
+```

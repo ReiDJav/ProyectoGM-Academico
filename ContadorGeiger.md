@@ -1,5 +1,5 @@
 ## Codigo fuente del contador Geiger-Müller
-por cuestiones de seguridad, se van omitir las credenciales de Wi-Fi, Thingspeak y IFTTT
+Por cuestiones de seguridad, se van omitir las credenciales de Wi-Fi, Thingspeak y IFTTT
 ```cpp
 // Definimos los condicionales
 #define Version "V1"

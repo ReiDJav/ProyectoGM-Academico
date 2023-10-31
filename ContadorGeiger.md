@@ -64,10 +64,10 @@ const int inputPin = 26; // Definimos el número del pin
 
 int counts = 0;  // Contador de eventos del tubo
 int counts2 = 0;
-int cpm = 0;                                             // CPM (conteo por minuto)
-unsigned long lastCountTime;                            // Tiempo de la última medición
+int cpm = 0;                     // CPM (conteo por minuto)
+unsigned long lastCountTime;     // Tiempo de la última medición
 unsigned long lastEntryThingspeak;
-unsigned long startCountTime;                            // Tiempo de inicio de la medición
+unsigned long startCountTime;    // Tiempo de inicio de la medición
 unsigned long startEntryThingspeak;
 
 #ifdef WIFI
@@ -160,23 +160,23 @@ void printStack() {
 
 // Configuración inicial
 void setup() {
-  esp_task_wdt_init(WDT_TIMEOUT, true); // Activar el "pánico" para reiniciar ESP32
-  esp_task_wdt_add(NULL); // Añadir el hilo actual a la vigilancia WDT
+  esp_task_wdt_init(WDT_TIMEOUT, true); // Inicializa el watchdog del ESP32 con un tiempo de espera y reinicia el reinicio de "pánico"
+  esp_task_wdt_add(NULL); // Añadir el hilo actual a la vigilancia del watchdog
   
 #ifdef CONS
-  Serial.begin(115200);
-  Serial.print("This is ") ; Serial.println(Version) ;
+  Serial.begin(115200); // Inicializa la comunicación serie a 115,200 baudios si la macro CONS esta habilitada
+  Serial.print("This is ") ; Serial.println(Version) ; // Imprime l aversion del programa en el monitor serie
 #endif 
 
   if (PERIOD_LOG > PERIOD_THINKSPEAK) {
 #ifdef CONS
-    Serial.println("PERIOD_THINKSPEAK has to be bigger than PERIODE_LOG");
+    Serial.println("PERIOD_THINKSPEAK has to be bigger than PERIODE_LOG"); //Comprueba si el periodo de envio a Thingspeak es mayor que el periodo de regiswtro y muetra un mensaje de error de no ser así
 #endif
-    while (1);
+    while (1); // Entra en un bucle de no cumplirse la condicción anterior 
   }
-  displayInit();
+  displayInit(); // Inicializa la pantalla
 #ifdef WIFI
-  ThingSpeak.begin(client);  // Inicializar ThingSpeak
+  ThingSpeak.begin(client);  // Inicializa ThingSpeak si se habilita Wi-Fi.
 #endif
   displayString("Welcome", 64, 0);
   displayString(Version, 64, 30);

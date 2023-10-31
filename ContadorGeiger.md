@@ -1,7 +1,7 @@
 ## Codigo fuente del contador Geiger-Müller
 Por cuestiones de seguridad, se van omitir las credenciales de Wi-Fi, Thingspeak y IFTTT
 ```cpp
-// Definimos los condicionales
+// Definición de macros
 #define Version "V1"
 #define CONS
 #define WIFI
@@ -10,7 +10,7 @@ Por cuestiones de seguridad, se van omitir las credenciales de Wi-Fi, Thingspeak
 #define PRINT_DEBUG_MESSAGES
 #endif
 
-// Incluimos las bibliotecas a utilizar y definimos las constantes
+// Inclusión de bibliotecas y definición de constantes
 #ifdef WIFI
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -60,14 +60,14 @@ WiFiClientSecure secure_client;
 // Configuración del display OLED
 SSD1306  display(0x3c, 5, 4);
 
-const int inputPin = 26; // Definimos el número del pin
+const int inputPin = 26; // Definición del número de pin
 
 int counts = 0;  // Contador de eventos del tubo
 int counts2 = 0;
 int cpm = 0;                     // CPM (conteo por minuto)
-unsigned long lastCountTime;     // Tiempo de la última medición
+unsigned long lastCountTime;     // Tiempo de última medición
 unsigned long lastEntryThingspeak;
-unsigned long startCountTime;    // Tiempo de inicio de la medición
+unsigned long startCountTime;    // Tiempo de inicio de medición
 unsigned long startEntryThingspeak;
 
 #ifdef WIFI
@@ -132,10 +132,10 @@ void IFTTT(int postValue) {
 #endif
 }
 
-// Función para enviar datos a ThingSpeak, cuenta con 8 campos en un canal, permitiendo almacenar datos en diferentes canales
+// Función para enviar datos a ThingSpeak, al contar con 8 campos en un canal, permite almacenar datos en diferentes canales
 void postThingspeak( int value) {
 #ifdef WIFI
-  int x = ThingSpeak.writeField(myChannelNumber, 1, value, myWriteAPIKey); // Mandamos los datos al campo 1
+  int x = ThingSpeak.writeField(myChannelNumber, 1, value, myWriteAPIKey); // Envio de datos al campo 1
 #ifdef CONS
   if (x == 200) {
     Serial.println("Channel update successful");
@@ -238,7 +238,7 @@ void loop() {
     startCountTime = millis() ;
     lastCountTime += PERIOD_LOG * 1000;
     display.clear();
-    displayString("Radioactivity", 64, 0); // Limpia el displey mostrar información sobre la radioactividad
+    displayString("Radioactivity", 64, 0); // Limpia el display mostrar información sobre la radioactividad
     displayInt(cpm, 64, 30);
 
     if (cpm >= 200) {  // Comprueba si la CPM supera el umbral de alarma (200)
@@ -269,7 +269,7 @@ void loop() {
  // Calcula el promedio de cuentas por hora (CPH) y enviarlo a ThingSpeak
     int averageCPH = (int)(((float)3600000 * (float)counts2) / (float)(millis() - startEntryThingspeak));
 #ifdef CONS
-    Serial.print("Average cph: "); Serial.println(averageCPH);  // Imprimir el promedio de CPH en modo de depuración
+    Serial.print("Average cph: "); Serial.println(averageCPH);  // Imprime el promedio de CPH en modo de depuración
 #endif
     postThingspeak(averageCPH); // Envia el valor promedio a ThingSpeak
     lastEntryThingspeak += PERIOD_THINKSPEAK * 1000;
